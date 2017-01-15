@@ -1,5 +1,13 @@
 # Ansiblite
 
+Lite version of Ansible, an IT automation tool
+
+## Modules
+
+Ansiblite supports only python modules
+
+- system/ping
+- system/setup
 
 ## scripts/test-module
 
