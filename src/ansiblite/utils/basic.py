@@ -161,8 +161,8 @@ except ImportError:
     except ImportError:
         pass
 
-from ansiblite.six import (PY2, PY3, b, binary_type, integer_types, iteritems, text_type, string_types)
-from ansiblite.six.moves import map, reduce
+from six import (PY2, PY3, b, binary_type, integer_types, iteritems, text_type, string_types)
+from six.moves import map, reduce
 from ansiblite.utils._text import to_native, to_bytes, to_text
 from ansiblite.utils.pycompat24 import get_exception, literal_eval
 

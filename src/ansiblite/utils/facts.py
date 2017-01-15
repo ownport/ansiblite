@@ -32,8 +32,8 @@ import datetime
 import getpass
 import pwd
 
-from ansiblite.six import PY3, iteritems
-from ansiblite.six.moves import configparser, StringIO, reduce
+from six import PY3, iteritems
+from six.moves import configparser, StringIO, reduce
 
 from ansiblite.utils.basic import get_all_subclasses
 from ansiblite.utils._text import to_native, to_text

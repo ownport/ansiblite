@@ -34,7 +34,7 @@
 """
 import codecs
 
-from ansiblite.six import PY3, text_type, binary_type
+from six import PY3, text_type, binary_type
 
 
 try:
