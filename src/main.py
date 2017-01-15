@@ -4,6 +4,8 @@ import sys
 import json
 import optparse
 
+# Cleaner removes from sys.path any external libs to avoid potential
+# conflicts with existing system libraries
 from ansiblite.utils.pyenv import Cleaner
 sys.path = Cleaner.syspath()
 
@@ -12,6 +14,7 @@ class Stdin():
 
     def read(self):
         return json.dumps(dict(ANSIBLE_MODULE_ARGS={}))
+
 
 def run():
 
