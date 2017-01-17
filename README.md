@@ -2,6 +2,13 @@
 
 Lite version of Ansible, an IT automation tool
 
+## Limitation compare to original Ansible version
+
+- python >= 2.7
+- only one (local) host support, no inventory
+- argparse used instead of optparse
+
+
 ## Modules
 
 Ansiblite supports only python modules
@@ -9,31 +16,15 @@ Ansiblite supports only python modules
 - system/ping
 - system/setup
 
-## scripts/test-module
+## Testing modules
 
-`test-module` is a simple program that allows module developers (or testers) to run
-a module outside of the ansible program, locally, on the current machine.
+`ansiblite test` command is a simple functionality that allows module developers (or testers)
+to run a module outside of the ansible program, locally, on the current machine.
 
 Example:
 
 ```sh
-$ ./hacking/test-module -m lib/ansible/modules/commands/shell -a "echo hi"
-```
+$ ./ansiblite test -m system.ping
 
-This is a good way to insert a breakpoint into a module, for instance.
-
-For more complex arguments such as the following yaml:
-
-```yaml
-parent:
-  child:
-    - item: first
-      val: foo
-    - item: second
-      val: boo
-```
-Use:
-```sh
-$ ./hacking/test-module -m module \
-    -a "{"parent": {"child": [{"item": "first", "val": "foo"}, {"item": "second", "val": "bar"}]}}"
+{"invocation": {"module_args": {"data": null}}, "changed": false, "ping": "pong"}
 ```
