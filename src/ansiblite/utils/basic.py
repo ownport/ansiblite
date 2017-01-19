@@ -161,10 +161,12 @@ except ImportError:
     except ImportError:
         pass
 
-from six import (PY2, PY3, b, binary_type, integer_types, iteritems, text_type, string_types)
+from six import (PY2, PY3, b, binary_type, integer_types,
+        iteritems, text_type, string_types)
 from six.moves import map, reduce
-from ansiblite.utils._text import to_native, to_bytes, to_text
+
 from ansiblite.utils.pycompat24 import get_exception, literal_eval
+from ansiblite.utils._text import to_native, to_bytes, to_text
 
 _NUMBERTYPES = tuple(list(integer_types) + [float])
 
@@ -581,21 +583,7 @@ def _load_params():
     if _ANSIBLE_ARGS is not None:
         buffer = _ANSIBLE_ARGS
     else:
-        # debug overrides to read args from file or cmdline
-
-        # Avoid tracebacks when locale is non-utf8
-        # We control the args and we pass them as utf8
-        # if len(sys.argv) > 1:
-        #     if os.path.isfile(sys.argv[1]):
-        #         fd = open(sys.argv[1], 'rb')
-        #         buffer = fd.read()
-        #         fd.close()
-        #     else:
-        #         buffer = sys.argv[1]
-        #         if PY3:
-        #             buffer = buffer.encode('utf-8', errors='surrogateescape')
-        # # default case, read from stdin
-        # else:
+        # default case, read from stdin
         if PY2:
             buffer = sys.stdin.read()
         else:
