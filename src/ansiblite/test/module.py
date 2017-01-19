@@ -7,7 +7,6 @@ import json
 class Stdin():
 
     def __init__(self, args):
-
         self._args = args
 
     def read(self):
@@ -27,8 +26,8 @@ def run_test(module_name, args):
         module.main()
     except ImportError, err:
         print(
-            "[ERROR] Cannot import module 'ansiblite.modules.{}'. Error: {}".format(
-                args.module_path, err.message)
+            "Cannot import module 'ansiblite.modules.{}'. Error: {}".format(
+                module_name, err.message)
         )
 
         import traceback
