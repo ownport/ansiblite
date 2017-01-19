@@ -5,6 +5,8 @@ import sys
 import argparse
 
 from ansiblite.test.module import run_test
+from ansiblite.playbook import run_playbooks
+
 
 __version__ = '0.0.1'
 
@@ -45,4 +47,9 @@ class Ansiblite(object):
 
     def playbook(self):
 
-        raise NotImplemented()
+        parser = argparse.ArgumentParser(usage=ANSIBLITE_USAGE, description='run Ansiblite playbooks')
+        parser.add_argument('-p', '--playbook',
+            dest='module_playbook', action='append', help="Ansiblite playbook")
+        args = parser.parse_args(sys.argv[2:])
+
+        run_playbooks(args.module_playbook)
