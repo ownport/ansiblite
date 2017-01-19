@@ -43,13 +43,21 @@ class Ansiblite(object):
             dest='module_args', action='append', help="module argument string")
         args = parser.parse_args(sys.argv[2:])
 
+        if not args.module_name:
+            print_help()
+            sys.exit(1)
+
         run_test(args.module_name, args.module_args)
 
     def playbook(self):
 
         parser = argparse.ArgumentParser(usage=ANSIBLITE_USAGE, description='run Ansiblite playbooks')
         parser.add_argument('-p', '--playbook',
-            dest='module_playbook', action='append', help="Ansiblite playbook")
+            dest='module_playbook', action='append', required=True, help="Ansiblite playbook")
         args = parser.parse_args(sys.argv[2:])
+
+        if not args.module_playbook:
+            parser.print_help()
+            sys.exit(1)
 
         run_playbooks(args.module_playbook)
