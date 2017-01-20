@@ -60,4 +60,4 @@ class Ansiblite(object):
             parser.print_help()
             sys.exit(1)
 
-        run_playbooks(args.module_playbook)
+        run_playbooks(args.module_playbook, options=args)
