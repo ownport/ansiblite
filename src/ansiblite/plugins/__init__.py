@@ -420,7 +420,7 @@ class PluginLoader:
 
 action_loader = PluginLoader(
     'ActionModule',
-    'ansible.plugins.action',
+    'ansiblite.plugins.action',
     C.DEFAULT_ACTION_PLUGIN_PATH,
     'action_plugins',
     required_base_class='ActionBase',
@@ -428,21 +428,21 @@ action_loader = PluginLoader(
 
 cache_loader = PluginLoader(
     'CacheModule',
-    'ansible.plugins.cache',
+    'ansiblite.plugins.cache',
     C.DEFAULT_CACHE_PLUGIN_PATH,
     'cache_plugins',
 )
 
 callback_loader = PluginLoader(
     'CallbackModule',
-    'ansible.plugins.callback',
+    'ansiblite.plugins.callback',
     C.DEFAULT_CALLBACK_PLUGIN_PATH,
     'callback_plugins',
 )
 
 connection_loader = PluginLoader(
     'Connection',
-    'ansible.plugins.connection',
+    'ansiblite.plugins.connection',
     C.DEFAULT_CONNECTION_PLUGIN_PATH,
     'connection_plugins',
     aliases={'paramiko': 'paramiko_ssh'},
@@ -451,21 +451,21 @@ connection_loader = PluginLoader(
 
 shell_loader = PluginLoader(
     'ShellModule',
-    'ansible.plugins.shell',
+    'ansiblite.plugins.shell',
     'shell_plugins',
     'shell_plugins',
 )
 
 module_loader = PluginLoader(
     '',
-    'ansible.modules',
+    'ansiblite.modules',
     C.DEFAULT_MODULE_PATH,
     'library',
 )
 
 lookup_loader = PluginLoader(
     'LookupModule',
-    'ansible.plugins.lookup',
+    'ansiblite.plugins.lookup',
     C.DEFAULT_LOOKUP_PLUGIN_PATH,
     'lookup_plugins',
     required_base_class='LookupBase',
@@ -473,35 +473,35 @@ lookup_loader = PluginLoader(
 
 vars_loader = PluginLoader(
     'VarsModule',
-    'ansible.plugins.vars',
+    'ansiblite.plugins.vars',
     C.DEFAULT_VARS_PLUGIN_PATH,
     'vars_plugins',
 )
 
 filter_loader = PluginLoader(
     'FilterModule',
-    'ansible.plugins.filter',
+    'ansiblite.plugins.filter',
     C.DEFAULT_FILTER_PLUGIN_PATH,
     'filter_plugins',
 )
 
 test_loader = PluginLoader(
     'TestModule',
-    'ansible.plugins.test',
+    'ansiblite.plugins.test',
     C.DEFAULT_TEST_PLUGIN_PATH,
     'test_plugins'
 )
 
 fragment_loader = PluginLoader(
     'ModuleDocFragment',
-    'ansible.utils.module_docs_fragments',
+    'ansiblite.utils.module_docs_fragments',
     os.path.join(os.path.dirname(__file__), 'module_docs_fragments'),
     '',
 )
 
 strategy_loader = PluginLoader(
     'StrategyModule',
-    'ansible.plugins.strategy',
+    'ansiblite.plugins.strategy',
     C.DEFAULT_STRATEGY_PLUGIN_PATH,
     'strategy_plugins',
     required_base_class='StrategyBase',
@@ -509,7 +509,7 @@ strategy_loader = PluginLoader(
 
 terminal_loader = PluginLoader(
     'TerminalModule',
-    'ansible.plugins.terminal',
+    'ansiblite.plugins.terminal',
     'terminal_plugins',
     'terminal_plugins'
 )
