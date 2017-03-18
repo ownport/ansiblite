@@ -5,8 +5,6 @@ PROJECT_NAME_SRC ?= ansiblite
 clean:
 	@ echo "[INFO] Cleaning directory:" $(shell pwd)/.local-ci
 	@ rm -rf $(shell pwd)/.local-ci
-	@ echo "[INFO] Cleaning directory:" $(shell pwd)/jirareports.egg-info
-	@ rm -rf $(shell pwd)/jirareports.egg-info
 	@ echo "[INFO] Cleaning directory:" $(shell pwd)/bin
 	@ rm -rf $(shell pwd)/bin
 	@ echo "[INFO] Cleaning files: *.pyc"
