@@ -23,12 +23,16 @@ __metaclass__ = type
 
 import os
 import sys
+import inspect
 import warnings
+
 
 
 from collections import defaultdict
 
 from ansiblite import constants as C
+from ansiblite.utils._text import to_text
+
 
 from ansiblite.utils.display import Display
 display = Display()
@@ -38,6 +42,12 @@ MODULE_CACHE = {}
 PATH_CACHE = {}
 PLUGIN_PATH_CACHE = {}
 
+def get_all_plugin_loaders():
+    return [(name, obj) for (name, obj) in inspect.getmembers(sys.modules[__name__]) if isinstance(obj, PluginLoader)]
+
+def get_all_modules():
+    from ansiblite import modules
+    raise [(name, obj) for (name, obj) in inspect.getmembers(modules) if isinstance(obj, PluginLoader)]
 
 class PluginLoader:
 
@@ -51,11 +61,11 @@ class PluginLoader:
 
     def __init__(self, class_name, package, config, subdir, aliases={}, required_base_class=None):
 
-        self.class_name         = class_name
-        self.base_class         = required_base_class
-        self.package            = package
-        self.subdir             = subdir
-        self.aliases            = aliases
+        self.class_name = class_name
+        self.base_class = required_base_class
+        self.package = package
+        self.subdir = subdir
+        self.aliases = aliases
 
         if config and not isinstance(config, list):
             config = [config]
@@ -71,8 +81,8 @@ class PluginLoader:
         if class_name not in PLUGIN_PATH_CACHE:
             PLUGIN_PATH_CACHE[class_name] = defaultdict(dict)
 
-        self._module_cache      = MODULE_CACHE[class_name]
-        self._paths             = PATH_CACHE[class_name]
+        self._module_cache = MODULE_CACHE[class_name]
+        self._paths = PATH_CACHE[class_name]
         self._plugin_path_cache = PLUGIN_PATH_CACHE[class_name]
 
         self._extra_dirs = []
@@ -101,14 +111,87 @@ class PluginLoader:
                 return None
         return obj
 
-    def _load_module_source(self, name, class_name):
+    def _load_module_source(self, name, class_names=[]):
         if name in sys.modules:
             # See https://github.com/ansible/ansible/issues/13110
             return sys.modules[name]
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            module = __import__(name, globals(), locals(), [class_name])
+            module = __import__(name, globals(), locals(), class_names)
         return module
+
+    def add_directory(self, directory, with_subdir=False):
+        ''' Adds an additional directory to the search path '''
+
+        directory = os.path.realpath(directory)
+
+        if directory is not None:
+            if with_subdir:
+                directory = os.path.join(directory, self.subdir)
+            if directory not in self._extra_dirs:
+                # append the directory and invalidate the path cache
+                self._extra_dirs.append(directory)
+                self._paths = None
+
+    def _display_plugin_load(self, class_name, name, found_in_cache=None, class_only=None):
+        msg = 'Loading %s from \'%s\'' % (class_name, name)
+
+        if found_in_cache or class_only:
+            msg = '%s (found_in_cache=%s, class_only=%s)' % (msg, found_in_cache, class_only)
+
+        display.debug(msg)
+
+    def has_plugin(self, name):
+        ''' Checks if a plugin named name exists '''
+
+        print(name)
+        return self.find_plugin(name) is not None
+
+    __contains__ = has_plugin
+
+
+    def find_plugin(self, name, mod_type='', ignore_deprecated=False):
+        ''' Find a plugin named name '''
+        return None
+
+    def all(self, *args, **kwargs):
+        ''' instantiates all plugins with the same arguments '''
+
+        class_only = kwargs.pop('class_only', False)
+        found_in_cache = True
+
+        from ansiblite import plugins as _plugins
+        for name, obj in inspect.getmembers(_plugins):
+            if isinstance(obj, PluginLoader) and name.endswith('_loader'):
+                if obj.package not in self._module_cache:
+                    self._module_cache[obj.package] = self._load_module_source(obj.package, [obj.class_name])
+                    found_in_cache = False
+
+                try:
+                    obj = getattr(self._module_cache[obj.package], self.class_name)
+                except AttributeError as e:
+                    # display.warning("Skipping plugin (%s) as it seems to be invalid: %s" % (obj.package, to_text(e)))
+                    continue
+
+                if self.base_class:
+                    # The import path is hardcoded and should be the right place,
+                    # so we are not expecting an ImportError.
+                    module = __import__(self.package, fromlist=[self.base_class])
+                    # Check whether this obj has the required base class.
+                    try:
+                        plugin_class = getattr(module, self.base_class)
+                    except AttributeError:
+                        continue
+                    if not issubclass(obj, plugin_class):
+                        continue
+
+                self._display_plugin_load(self.class_name, name,
+                                          found_in_cache=found_in_cache,
+                                          class_only=class_only)
+                if not class_only:
+                    obj = obj(*args, **kwargs)
+
+                yield obj
 
 
 action_loader = PluginLoader(
@@ -166,7 +249,7 @@ lookup_loader = PluginLoader(
 
 vars_loader = PluginLoader(
     'VarsModule',
-    'ansiblite.plugins.vars',
+    'ansiblite.inventory.vars_plugins.noop',
     C.DEFAULT_VARS_PLUGIN_PATH,
     'vars_plugins',
 )
@@ -185,12 +268,12 @@ test_loader = PluginLoader(
     'test_plugins'
 )
 
-fragment_loader = PluginLoader(
-    'ModuleDocFragment',
-    'ansiblite.utils.module_docs_fragments',
-    os.path.join(os.path.dirname(__file__), 'module_docs_fragments'),
-    '',
-)
+# fragment_loader = PluginLoader(
+#     'ModuleDocFragment',
+#     'ansiblite.utils.module_docs_fragments',
+#     os.path.join(os.path.dirname(__file__), 'module_docs_fragments'),
+#     '',
+# )
 
 strategy_loader = PluginLoader(
     'StrategyModule',
@@ -200,9 +283,9 @@ strategy_loader = PluginLoader(
     required_base_class='StrategyBase',
 )
 
-terminal_loader = PluginLoader(
-    'TerminalModule',
-    'ansiblite.plugins.terminal',
-    'terminal_plugins',
-    'terminal_plugins'
-)
+# terminal_loader = PluginLoader(
+#     'TerminalModule',
+#     'ansiblite.plugins.terminal',
+#     'terminal_plugins',
+#     'terminal_plugins'
+# )

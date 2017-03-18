@@ -23,8 +23,8 @@ import collections
 
 from jinja2.exceptions import UndefinedError
 
-from ansible import constants as C
-from ansible.template import Templar
+from ansiblite import constants as C
+from ansiblite.template import Templar
 
 STATIC_VARS = [
     'inventory_hostname', 'inventory_hostname_short',
