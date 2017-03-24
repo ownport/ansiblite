@@ -1,7 +1,8 @@
 ---
-- hosts: all
+- hosts: localhost
   tasks:
-  - shell: echo "Hello world"
-  
-  - name: Hello world message
+  - name: "[shell] Hello world message"
+    shell: echo "Hello world"
+
+  - name: "[command] Hello world message"
     command: echo "hello world"
