@@ -1,100 +1,104 @@
-
 from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
+__requires__ = ['ansible']
+try:
+    import pkg_resources
+except Exception:
+    # Use pkg_resources to find the correct versions of libraries and set
+    # sys.path appropriately when there are multiversion installs.  But we
+    # have code that better expresses the errors in the places where the code
+    # is actually used (the deps are optional for many code paths) so we don't
+    # want to fail here.
+    pass
+
+import os
+import shutil
 import sys
-import argparse
+import traceback
 
-from ansible import constants as C
+# for debug
+from multiprocessing import Lock
+debug_lock = Lock()
 
-from test.module import run_test
-from runners import run_playbooks
-
-
-__version__ = 'v2.1.4.0-1'
-
-ANSIBLITE_USAGE = '''ansiblite <command> [<args>]
-
-The list of commands:
-   test        testing Ansiblite modules
-   playbook    run playbook
-'''
+import ansible.constants as C
+from ansible.errors import AnsibleError, AnsibleOptionsError, AnsibleParserError
+from ansible.utils.display import Display
+from ansible.utils.unicode import to_unicode
 
 
-class Ansiblite(object):
+########################################
+### OUTPUT OF LAST RESORT ###
+class LastResort(object):
+    def display(self, msg):
+        print(msg, file=sys.stderr)
 
-    def __init__(self):
+    def error(self, msg, wrap_text=None):
+        print(msg, file=sys.stderr)
 
-        parser = argparse.ArgumentParser(usage=ANSIBLITE_USAGE)
-        parser.add_argument('-v', '--version', action='version',
-                            version='v{}'.format(__version__))
-        parser.add_argument('command', help='Subcommand to run')
-        args = parser.parse_args(sys.argv[1:2])
 
-        if not hasattr(self, args.command):
-            print('Unrecognized command: %s' % args.command)
-            sys.exit(1)
-        # use dispatch pattern to invoke method with same name
-        getattr(self, args.command)()
+def run():
 
-    @staticmethod
-    def expand_tilde(option, opt, value, parser):
-        setattr(parser.values, option.dest, os.path.expanduser(value))
+    display = LastResort()
+    cli = None
+    me = os.path.basename(sys.argv[0])
 
-    def test(self):
+    try:
+        display = Display()
+        display.debug("starting run")
 
-        parser = argparse.ArgumentParser(usage=ANSIBLITE_USAGE,
-                                         description='Testing Ansiblite modules')
-        parser.add_argument('-m', '--module-name',
-                            dest='module_name',
-                            required=True,
-                            help="the module module to execute")
-        parser.add_argument('-a', '--args',
-                            dest='module_args',
-                            action='append',
-                            help="module argument string")
-        args = parser.parse_args(sys.argv[2:])
+        sub = None
+        try:
+            if me.find('-') != -1:
+                target = me.split('-')
+                if len(target) > 1:
+                    sub = target[1]
+                    myclass = "%sCLI" % sub.capitalize()
+                    mycli = getattr(__import__("ansible.cli.%s" % sub, fromlist=[myclass]), myclass)
+            elif me == 'ansible':
+                from ansible.cli.adhoc import AdHocCLI as mycli
+            else:
+                raise AnsibleError("Unknown Ansible alias: %s" % me)
+        except ImportError as e:
+            if e.message.endswith(' %s' % sub):
+                raise AnsibleError("Ansible sub-program not implemented: %s" % me)
+            else:
+                raise
 
-        if not args.module_name:
-            parser.print_help()
-            sys.exit(1)
+        cli = mycli(sys.argv)
+        cli.parse()
+        exit_code = cli.run()
 
-        run_test(args.module_name, args.module_args)
+    except AnsibleOptionsError as e:
+        cli.parser.print_help()
+        display.error(to_unicode(e), wrap_text=False)
+        exit_code = 5
+    except AnsibleParserError as e:
+        display.error(to_unicode(e), wrap_text=False)
+        exit_code = 4
+# TQM takes care of these, but leaving comment to reserve the exit codes
+#    except AnsibleHostUnreachable as e:
+#        display.error(str(e))
+#        exit_code = 3
+#    except AnsibleHostFailed as e:
+#        display.error(str(e))
+#        exit_code = 2
+    except AnsibleError as e:
+        display.error(to_unicode(e), wrap_text=False)
+        exit_code = 1
+    except KeyboardInterrupt:
+        display.error("User interrupted execution")
+        exit_code = 99
+    except Exception as e:
+        have_cli_options = cli is not None and cli.options is not None
+        display.error("Unexpected Exception: %s" % to_unicode(e), wrap_text=False)
+        if not have_cli_options or have_cli_options and cli.options.verbosity > 2:
+            display.display(u"the full traceback was:\n\n%s" % to_unicode(traceback.format_exc()))
+        else:
+            display.display("to see the full traceback, use -vvv")
+        exit_code = 250
+    finally:
+        # Remove ansible tempdir
+        shutil.rmtree(C.DEFAULT_LOCAL_TMP, True)
 
-    def playbook(self):
-
-        parser = argparse.ArgumentParser(usage=ANSIBLITE_USAGE,
-                                         description='run Ansiblite playbooks')
-        parser.add_argument('-v','--verbose', dest='verbosity', default=0,
-                            action="count",
-                            help="verbose mode (-vvv for more, -vvvv to enable connection debugging)")
-        parser.add_argument('-p', '--playbook',
-                            dest='module_playbook',
-                            action='append',
-                            required=True,
-                            help="Ansiblite playbook")
-        parser.add_argument('-i', '--inventory-file', dest='inventory',
-                            help="specify inventory host path (default=%s) or comma separated host list." % C.DEFAULT_HOST_LIST,
-                            default=C.DEFAULT_HOST_LIST,
-                            type=str)
-        parser.add_argument('--list-hosts', dest='listhosts',
-                            action='store_true',
-                            help='outputs a list of matching hosts; does not execute anything else')
-        parser.add_argument('--list-tasks', dest='listtasks', action='store_true',
-                            help="list all tasks that would be executed")
-        parser.add_argument('--list-tags', dest='listtags', action='store_true',
-                            help="list all available tags")
-        parser.add_argument('--syntax-check', dest='syntax',
-                            action='store_true',
-                            help="perform a syntax check on the playbook, but do not execute it")
-        parser.add_argument('-M', '--module-path', dest='module_path',
-                            default=None,
-                            help="specify path(s) to module library (default=%s)" % C.DEFAULT_MODULE_PATH,
-                            type=str)
-
-        args = parser.parse_args(sys.argv[2:])
-
-        if not args.module_playbook:
-            parser.print_help()
-            sys.exit(1)
-
-        run_playbooks(args.module_playbook, options=args)
+    sys.exit(exit_code)

@@ -7,6 +7,6 @@ import sys
 from utils import Cleaner
 sys.path = Cleaner.syspath()
 
-from main import Ansiblite
+import main
 
-Ansiblite()
+main.run()
