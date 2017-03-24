@@ -258,7 +258,6 @@ class ModuleArgsParser:
         delegate_to = self._task_ds.get('delegate_to', None)
         args        = dict()
 
-
         # this is the 'extra gross' scenario detailed above, so we grab
         # the args and pass them in as additional arguments, which can/will
         # be overwritten via dict updates from the other arg sources below
