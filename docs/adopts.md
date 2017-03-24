@@ -15,3 +15,5 @@ else:
         buffer = sys.stdin.buffer.read()
     _ANSIBLE_ARGS = buffer
 ```
+
+## ansible/plugins/__init__.py
