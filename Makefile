@@ -5,8 +5,8 @@ PROJECT_NAME_SRC ?= ansiblite
 clean:
 	@ echo "[INFO] Cleaning directory:" $(shell pwd)/.local-ci
 	@ rm -rf $(shell pwd)/.local-ci
-	@ echo "[INFO] Cleaning directory:" $(shell pwd)/bin
-	@ rm -rf $(shell pwd)/bin
+	@ echo "[INFO] Cleaning directory:" $(shell pwd)/target
+	@ rm -rf $(shell pwd)/target
 	@ echo "[INFO] Cleaning files: *.pyc"
 	@ find . -name "*.pyc" -delete
 	@ echo "[INFO] Cleaning files: .coverage"
@@ -15,9 +15,10 @@ clean:
 
 compile: clean
 	@ echo "[INFO] Compiling to binary, $(PROJECT_NAME_BIN)"
-	@ mkdir -p $(shell pwd)/bin
-	@ cd $(shell pwd)/src/; zip --quiet -r ../bin/$(PROJECT_NAME_BIN) *
-	@ echo '#!$(PYTHON)' > bin/$(PROJECT_NAME_BIN) && \
-		cat bin/$(PROJECT_NAME_BIN).zip >> bin/$(PROJECT_NAME_BIN) && \
-		rm bin/$(PROJECT_NAME_BIN).zip && \
-		chmod a+x bin/$(PROJECT_NAME_BIN)
+	@ mkdir -p $(shell pwd)/target
+	@ cd $(shell pwd)/src/; zip --quiet -r ../target/$(PROJECT_NAME_BIN) *
+	@ echo '#!$(PYTHON)' > target/$(PROJECT_NAME_BIN) && \
+		cat target/$(PROJECT_NAME_BIN).zip >> target/$(PROJECT_NAME_BIN) && \
+		rm target/$(PROJECT_NAME_BIN).zip && \
+		chmod a+x target/$(PROJECT_NAME_BIN)
+	@ cd target && ln -s $(PROJECT_NAME_BIN) ansiblite-playbook
