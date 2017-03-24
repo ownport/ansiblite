@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-bin/
 archive/
 
 # C extensions
@@ -89,3 +88,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# IDE
+.idea/
+
+# Ansible temp files
+*.retry
