@@ -54,8 +54,8 @@ def run():
                 if len(target) > 1:
                     sub = target[1]
                     myclass = "%sCLI" % sub.capitalize()
-                    mycli = getattr(__import__("ansible.cli.%s" % sub, fromlist=[myclass]), myclass)
-            elif me == 'ansible':
+                    mycli = getattr(__import__("ansiblite.cli.%s" % sub, fromlist=[myclass]), myclass)
+            elif me == 'ansiblite':
                 from ansible.cli.adhoc import AdHocCLI as mycli
             else:
                 raise AnsibleError("Unknown Ansible alias: %s" % me)
