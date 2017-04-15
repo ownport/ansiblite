@@ -48,6 +48,7 @@ def run():
         display.debug("starting run")
 
         sub = None
+        mycli = None
         try:
             if me.find('-') != -1:
                 target = me.split('-')
